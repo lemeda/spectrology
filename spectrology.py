@@ -22,39 +22,9 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level="DEBUG", format="%(asctime)s:%(name)s:%(lineno)s:%(levelname)s - %(message)s")
 
-    minfreq = 200
-    maxfreq = 20000
-    wavrate = 44100
-    pxs     = 30
-    output  = "out.wav"
-    rotate  = False
-    invert  = False
 
-    if args.output:
-        output = args.output
-    if args.bottom:
-        minfreq = args.bottom
-    if args.top:
-        maxfreq = args.top
-    if args.pixels:
-        pxs = args.pixels
-    if args.sampling:
-        wavrate = args.sampling
-    if args.rotate:
-        rotate = True
-    if args.invert:
-        invert = True
-
-    print('Input file: %s.' % args.INPUT)
-    print('Frequency range: %d - %d.' % (minfreq, maxfreq))
-    print('Pixels per second: %d.' % pxs)
-    print('Sampling rate: %d.' % wavrate)
-    print('Rotate Image: %s.' % ('yes' if rotate else 'no'))
-
-    return (args.INPUT, output, minfreq, maxfreq, pxs, wavrate, rotate, invert)
-
-def convert(inpt, output, minfreq, maxfreq, pxs, wavrate, rotate, invert):
-    img = Image.open(inpt).convert('L')
+def convert(input_file, output, minfreq, maxfreq, pxs, wavrate, rotate, invert):
+    img = Image.open(input_file).convert('L')
 
     # rotate image if requested
     if rotate:
@@ -64,13 +34,13 @@ def convert(inpt, output, minfreq, maxfreq, pxs, wavrate, rotate, invert):
     if invert:
         img = ImageOps.invert(img)
 
-    output = wave.open(output, 'w')
+    output = wave.open(output, 'wb')
     output.setparams((1, 2, wavrate, 0, 'NONE', 'not compressed'))
 
     freqrange = maxfreq - minfreq
     interval = freqrange / img.size[1]
 
-    fpx = wavrate / pxs
+    fpx = wavrate // pxs
     data = array.array('h')
 
     tm = timeit.default_timer()
@@ -79,21 +49,21 @@ def convert(inpt, output, minfreq, maxfreq, pxs, wavrate, rotate, invert):
         row = []
         for y in range(img.size[1]):
             yinv = img.size[1] - y - 1
-            amp = img.getpixel((x,y))
-            if (amp > 0):
-                row.append( genwave(yinv * interval + minfreq, amp, fpx, wavrate) )
+            amp = img.getpixel((x, y))
+            if amp > 0:
+                row.append(genwave(yinv * interval + minfreq, amp, fpx, wavrate))
 
         for i in range(fpx):
             for j in row:
                 try:
                     data[i + x * fpx] += j[i]
-                except(IndexError):
+                except IndexError:
                     data.insert(i + x * fpx, j[i])
-                except(OverflowError):
+                except OverflowError:
                     if j[i] > 0:
-                      data[i + x * fpx] = 32767
+                        data[i + x * fpx] = 32767
                     else:
-                      data[i + x * fpx] = -32768
+                        data[i + x * fpx] = -32768
 
         logger.info("Conversion progress: %d%%   \r" % (float(x) / img.size[0] * 100))
         sys.stdout.flush()
@@ -141,5 +111,4 @@ def main():
 
 
 if __name__ == '__main__':
-    inpt = parser()
-    convert(*inpt)
+    main()
