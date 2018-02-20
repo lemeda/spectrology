@@ -17,17 +17,10 @@ import wave
 
 from PIL import Image, ImageOps
 
-def parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("INPUT", help="Name of the image to be convected.")
-    parser.add_argument("-r", "--rotate", help="Rotate image 90 degrees for waterfall spectrographs.", action='store_true')
-    parser.add_argument("-i", "--invert", help="Invert image colors.", action='store_true')
-    parser.add_argument("-o", "--output", help="Name of the output wav file. Default value: out.wav).")
-    parser.add_argument("-b", "--bottom", help="Bottom frequency range. Default value: 200.", type=int)
-    parser.add_argument("-t", "--top", help="Top frequency range. Default value: 20000.", type=int)
-    parser.add_argument("-p", "--pixels", help="Pixels per second. Default value: 30.", type=int)
-    parser.add_argument("-s", "--sampling", help="Sampling rate. Default value: 44100.", type=int)
-    args = parser.parse_args()
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level="DEBUG", format="%(asctime)s:%(name)s:%(lineno)s:%(levelname)s - %(message)s")
 
     minfreq = 200
     maxfreq = 20000
@@ -102,7 +95,7 @@ def convert(inpt, output, minfreq, maxfreq, pxs, wavrate, rotate, invert):
                     else:
                       data[i + x * fpx] = -32768
 
-        sys.stdout.write("Conversion progress: %d%%   \r" % (float(x) / img.size[0]*100) )
+        logger.info("Conversion progress: %d%%   \r" % (float(x) / img.size[0] * 100))
         sys.stdout.flush()
 
     output.writeframes(data.tostring())
@@ -121,6 +114,31 @@ def genwave(frequency, amplitude, samples, samplerate):
         x = math.sin(float(cycles) * 2 * math.pi * i / float(samples)) * float(amplitude)
         a.append(int(math.floor(x)))
     return a
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("INPUT", help="Name of the image to be convected.")
+    parser.add_argument("-o", "--output", default="out.wav",
+                        help="Name of the output wav file. Default value: out.wav).")
+    parser.add_argument("-m", "--minfreq", default=200, help="Bottom frequency range. Default value: 200.", type=int)
+    parser.add_argument("-M", "--maxfreq", default=20000, help="Top frequency range. Default value: 20000.", type=int)
+    parser.add_argument("-p", "--pixels", default=30, help="Pixels per second. Default value: 30.", type=int)
+    parser.add_argument("-s", "--sampling", default=44100, help="Sampling rate. Default value: 44100.", type=int)
+    parser.add_argument("-r", "--rotate", default=False, help="Rotate image 90 degrees for waterfall spectrographs.",
+                        action='store_true')
+    parser.add_argument("-i", "--invert", default=False, help="Invert image colors.", action='store_true')
+    args = parser.parse_args()
+
+    logger.debug('Input file: %s.' % args.INPUT)
+    logger.debug('Frequency range: %d - %d.' % (args.minfreq, args.maxfreq))
+    logger.debug('Pixels per second: %d.' % args.pixels)
+    logger.debug('Sampling rate: %d.' % args.sampling)
+    logger.debug('Rotate Image: %s.' % ('yes' if args.rotate else 'no'))
+    logger.debug('Invert colors: %s.' % ('yes' if args.invert else 'no'))
+
+    convert(args.INPUT, args.output, args.minfreq, args.maxfreq, args.pixels, args.sampling, args.rotate, args.invert)
+
 
 if __name__ == '__main__':
     inpt = parser()
