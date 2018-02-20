@@ -1,15 +1,21 @@
 #!/usr/bin/env python
 
-'''
+"""
 Spectrology
 This script is able to encode an image into audio file whose spectrogram represents input image.
 
 License: MIT
 Website: https://github.com/solusipse/spectrology
-'''
+"""
+
+import argparse
+import array
+import math
+import sys
+import timeit
+import wave
 
 from PIL import Image, ImageOps
-import wave, math, array, argparse, sys, timeit
 
 def parser():
     parser = argparse.ArgumentParser()
@@ -59,11 +65,11 @@ def convert(inpt, output, minfreq, maxfreq, pxs, wavrate, rotate, invert):
 
     # rotate image if requested
     if rotate:
-      img = img.rotate(90)
+        img = img.rotate(90)
 
     # invert image if requested
     if invert:
-      img = ImageOps.invert(img)
+        img = ImageOps.invert(img)
 
     output = wave.open(output, 'w')
     output.setparams((1, 2, wavrate, 0, 'NONE', 'not compressed'))
@@ -105,7 +111,8 @@ def convert(inpt, output, minfreq, maxfreq, pxs, wavrate, rotate, invert):
     tms = timeit.default_timer()
 
     print("Conversion progress: 100%")
-    print("Success. Completed in %d seconds." % int(tms-tm))
+    print("Success. Completed in %d seconds." % int(tms - tm))
+
 
 def genwave(frequency, amplitude, samples, samplerate):
     cycles = samples * frequency / samplerate
