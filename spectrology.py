@@ -100,12 +100,12 @@ def main():
     parser.add_argument("-i", "--invert", default=False, help="Invert image colors.", action='store_true')
     args = parser.parse_args()
 
-    logger.debug('Input file: %s.' % args.INPUT)
-    logger.debug('Frequency range: %d - %d.' % (args.minfreq, args.maxfreq))
-    logger.debug('Pixels per second: %d.' % args.pixels)
-    logger.debug('Sampling rate: %d.' % args.sampling)
-    logger.debug('Rotate Image: %s.' % ('yes' if args.rotate else 'no'))
-    logger.debug('Invert colors: %s.' % ('yes' if args.invert else 'no'))
+    logger.debug("Input file: {}.".format(args.INPUT))
+    logger.debug("Frequency range: {} - {}.".format(args.minfreq, args.maxfreq))
+    logger.debug("Pixels per second: {}.".format(args.pixels))
+    logger.debug("Sampling rate: {}.".format(args.sampling))
+    logger.debug("Rotate Image: {}.".format("yes" if args.rotate else "no"))
+    logger.debug("Invert colors: {}.".format("yes" if args.invert else "no"))
 
     convert(args.INPUT, args.output, args.minfreq, args.maxfreq, args.pixels, args.sampling, args.rotate, args.invert)
 
